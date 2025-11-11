@@ -15,6 +15,7 @@ from sklearn.metrics import accuracy_score
 import time
 keras.utils.set_random_seed(42)
 from nns import FCNModel_multichannel, FCNModel_image, FCNModel_stack
+from functions import load_data
 
 # this script trains and finetunes 3 architectures according to commands parsed from command prompt
 def parse_args():
@@ -25,28 +26,12 @@ def parse_args():
 
 def main():
     inputs = parse_args()
+    nb_classes = 24
     leads = ['I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
     data_folder_ = '../data'  # you may need to change this directory
-    info_file_ = 'sim_info_'
-    n_dataset_ = ['lv','rv']
-    json_filename_ = '.leadfield.filt_o3_n500.0_l150.0_h0.05.json'
-    data_normalization_ = 'any'
-    signals, _, labels, _ = read_data(data_folder_, json_filename_, info_file_,
-                                n_dataset_, leads,
-                                0.1, 0.3, data_normalization_,
-                                range(0,24), False)
-    info_csv_lv = pd.read_csv('../data/sim_info_lv_3.csv', sep = ',') # left ventricle csv
-    info_csv_rv = pd.read_csv('../data/sim_info_rv_3.csv', sep = ',') # right ventricle csv
-    reg_lv = info_csv_lv['new_reg'].values
-    reg_rv = info_csv_rv['new_reg'].values
-    # concatenate rv + lv
-    regions = np.concatenate((reg_lv, reg_rv))
-    regions_reshaped = regions.reshape(-1, 1)
-    # one hot encode 24 classes
-    encoder = OneHotEncoder(sparse_output=False, categories='auto')
-    y = encoder.fit_transform(regions_reshaped)
-    signals = [pd.DataFrame(signals[ii], columns = leads) for ii in range(len(signals))]
-    nb_classes = 24
+    directory_lv = '../data/sim_info_lv_3.csv'
+    directory_rv = '../data/sim_info_rv_3.csv'
+    signals, x, y = load_data(leads, data_folder_, directory_lv, directory_rv)
     if(inputs.firstrun == 'True'): # split data and save indices (only execute on first run)
         indices = np.arange(len(signals))
         indicestrain, indicestemp,  ytrain, ytemp = train_test_split(indices, y, stratify = y, random_state=42, shuffle = True, train_size=0.75)
@@ -64,10 +49,6 @@ def main():
     indicestrain = pd.read_csv('../data/train_indices.csv')['index']
     indicesval = pd.read_csv('../data/val_indices.csv')['index']
     indicestest = pd.read_csv('../data/test_indices.csv')['index']
-    x = np.zeros((len(signals), signals[0].shape[0], signals[0].shape[1])) # this will need reshaping for 2 architectures
-    for ii, signal in enumerate(signals):
-        for jj, column in enumerate(leads):
-            x[ii, :, jj] = signal[column]
     xtrain = x[indicestrain]
     xval = x[indicesval]
     xtest = x[indicestest]
@@ -268,7 +249,7 @@ def main():
             fcn = FCNModel_stack(n = nb_classes, startlr = 1e-4)
             model = fcn.model
             checkpoint = callbacks.ModelCheckpoint(filepath = f'../data/models/stack/smaller/best_fcn_original_run_{ii}.weights.h5',
-                                                monitor = 'val_loss', save_best_only= True, save_weights_only= True)
+                                                   monitor = 'val_loss', save_best_only= True, save_weights_only= True)
             model.fit(xtrain, ytrain, epochs = 150, batch_size = 100, validation_data=(xval, yval),
                       callbacks = [earlystop, reducelr, checkpoint])
             model.load_weights(f'../data/models/stack/best_fcn_original_run_{ii}.weights.h5')

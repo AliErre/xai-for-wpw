@@ -14,6 +14,7 @@ import json
 from pandas import json_normalize
 from colorama import Fore, Style
 from scipy.io import savemat
+from sklearn.preprocessing import OneHotEncoder
 
 
 def safe_mkdir(path):
@@ -156,4 +157,31 @@ def get_indices_for_region(df, region):
     # indices where 'reg' matches the given region
     return np.where(df['reg'].values == region)[0].tolist()
 
+def load_data(leads, data_folder_, directory_lv, directory_rv):
+    # load data
+    info_file_ = 'sim_info_'
+    n_dataset_ = ['lv','rv']
+    json_filename_ = '.leadfield.filt_o3_n500.0_l150.0_h0.05.json'
+    data_normalization_ = 'any'
+    signals, _, labels, _ = read_data(data_folder_, json_filename_, info_file_,
+                                      n_dataset_, leads,
+                                      0.1, 0.3, data_normalization_,
+                                      range(0,24), False)
+    info_csv_lv = pd.read_csv(directory_lv, sep = ',') # left ventricle csv
+    info_csv_rv = pd.read_csv(directory_rv, sep = ',') # right ventricle csv
+    reg_lv = info_csv_lv['new_reg'].values
+    reg_rv = info_csv_rv['new_reg'].values
+    # concatenate rv + lv
+    regions = np.concatenate((reg_lv, reg_rv))
+    regions_reshaped = regions.reshape(-1, 1)
+    # one hot encode 24 classes
+    encoder = OneHotEncoder(sparse_output=False, categories='auto')
+    y = encoder.fit_transform(regions_reshaped)
+    signals = [pd.DataFrame(signals[ii], columns = leads) for ii in range(len(signals))]
+    nb_classes = 24
+    x = np.zeros((len(signals), signals[0].shape[0], signals[0].shape[1]))
+    for ii, signal in enumerate(signals):
+        for jj, column in enumerate(leads):
+            x[ii, :, jj] = signal[column]
+    return signals, x, y
 

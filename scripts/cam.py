@@ -10,30 +10,18 @@ import pandas as pd
 import json
 import pickle
 from nns import FCNModel_image
-from functions import read_data
+from functions import load_data
 
 # computes class activation maps for FCN with 2d channels (ecgs as images)     
 def main():
     leads = ['I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
     data_folder_ = '../data'
-    info_file_ = 'sim_info_'
-    n_dataset_ = ['lv','rv']
-    json_filename_ = '.leadfield.filt_o3_n500.0_l150.0_h0.05.json'
-    data_normalization_ = 'any'
-    signals, _, labels, _ = read_data(data_folder_, json_filename_, info_file_,
-                                      n_dataset_, leads,
-                                      0.1, 0.3, data_normalization_,
-                                      range(0,24), False)
-    signals = [pd.DataFrame(signals[ii], columns = leads) for ii in range(len(signals))]
+    directory_lv = '../data/sim_info_lv_3.csv'
+    directory_rv = '../data/sim_info_rv_3.csv'
     nb_classes = 24
-    
+    signals, x, y = load_data(leads, data_folder_, directory_lv, directory_rv)
     # format to matrix (batch, time, channel)
-    x = np.zeros((len(signals), signals[0].shape[0], signals[0].shape[1]))
-    for ii, signal in enumerate(signals):
-        for jj, column in enumerate(leads):
-            x[ii, :, jj] = signal[column]
-        x = np.expand_dims(x, axis = -1) 
-
+    x = np.expand_dims(x, axis = -1) 
     indicestrain = pd.read_csv('../data/train_indices.csv')['index']
     indicesval = pd.read_csv('../data/val_indices.csv')['index']
     indicestest = pd.read_csv('../data/test_indices.csv')['index']
