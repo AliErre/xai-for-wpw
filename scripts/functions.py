@@ -5,7 +5,6 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import numpy as np
 import csv
 import tensorflow as tf
-import matplotlib
 import matplotlib.pyplot as plt
 import time
 import colorama
