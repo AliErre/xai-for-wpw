@@ -8,9 +8,6 @@ os.environ["KERAS_BACKEND"] = "tensorflow"
 import keras
 from keras import layers, models, callbacks, optimizers
 import argparse
-from sklearn.model_selection import train_test_split
-from functions import read_data
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import accuracy_score
 import time
 keras.utils.set_random_seed(42)
@@ -20,7 +17,6 @@ from functions import load_data
 # this script trains and finetunes 3 architectures according to commands parsed from command prompt
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--firstrun', required = True, type = str, help = 'If set True, splits set in train (75%) val (15%) test (10%) and saves indices.')
     parser.add_argument('--model', required = True, type = str, help = 'Which model to train and finetune (multichannel, stack, image).')
     return parser.parse_args()
 
@@ -32,19 +28,7 @@ def main():
     directory_lv = '../data/sim_info_lv_3.csv'
     directory_rv = '../data/sim_info_rv_3.csv'
     signals, x, y = load_data(leads, data_folder_, directory_lv, directory_rv)
-    if(inputs.firstrun == 'True'): # split data and save indices (only execute on first run)
-        indices = np.arange(len(signals))
-        indicestrain, indicestemp,  ytrain, ytemp = train_test_split(indices, y, stratify = y, random_state=42, shuffle = True, train_size=0.75)
-        indicesval, indicestest, yval, ytest = train_test_split(indicestemp, ytemp, stratify = ytemp, random_state=42, shuffle = True, train_size = 0.6)
-        indicestrain = indicestrain.tolist()
-        indicesval = indicesval.tolist()
-        indicestest = indicestest.tolist()
-        dfs = [indicestrain, indicesval, indicestest]
-        names = ['train', 'val', 'test']
-        for (df, name) in zip(dfs, names):
-            data = pd.DataFrame({'index': df})
-            data.to_csv('../data/' + name + '_indices.csv', index = False)
-    
+
     # format data
     indicestrain = pd.read_csv('../data/train_indices.csv')['index']
     indicesval = pd.read_csv('../data/val_indices.csv')['index']
