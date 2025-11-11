@@ -71,7 +71,7 @@ def main():
         for ii in range(10):
             fcn = FCNModel_multichannel(n = nb_classes, startlr = 1e-4)
             model = fcn.model
-            checkpoint = callbacks.ModelCheckpoint(filepath = f'../data/models/multichannel/best_fcn_multichannel_run_{ii}.weights.h5',
+            checkpoint = callbacks.ModelCheckpoint(filepath = f'../data/models/multichannel/best_fcn_original_run_{ii}.weights.h5',
                                                    monitor = 'val_loss', save_best_only= True, save_weights_only= True) # save weight on val loss decrease
             if(ii == 0):
                 start = time.time() # monitor networks training time
@@ -80,7 +80,7 @@ def main():
             if(ii == 0):
                 end = time.time()
                 print(f'elapsed time: {end-start}')
-            model.load_weights(f'../data/models/multichannel/best_fcn_multichannel_run_{ii}.weights.h5')
+            model.load_weights(f'../data/models/multichannel/best_fcn_original_run_{ii}.weights.h5')
             predictions = model.predict(xtrain)
             ypredtrain = np.argmax(predictions, axis = -1)
             accuraciestrainfcn.append(accuracy_score(yclasstrain, ypredtrain))
@@ -102,7 +102,7 @@ def main():
         selectedrun = np.where(lossesvalfcn == np.min(lossesvalfcn))[0][0] # finetune run with lowest val loss (potentially best generalization)
         fcn = FCNModel_multichannel(n = nb_classes, startlr = 2.5*(1e-5))
         model = fcn.model
-        model.load_weights(f'../data/models/multichannel/best_fcn_multichannel_run_{selectedrun}.weights.h5')
+        model.load_weights(f'../data/models/multichannel/best_fcn_original_run_{selectedrun}.weights.h5')
         for ii in range(len(model.layers)-5):
             layer = model.get_layer(index = ii)
             layer.trainable = False
@@ -248,7 +248,7 @@ def main():
         for ii in range(10):
             fcn = FCNModel_stack(n = nb_classes, startlr = 1e-4)
             model = fcn.model
-            checkpoint = callbacks.ModelCheckpoint(filepath = f'../data/models/stack/smaller/best_fcn_original_run_{ii}.weights.h5',
+            checkpoint = callbacks.ModelCheckpoint(filepath = f'../data/models/stack/best_fcn_original_run_{ii}.weights.h5',
                                                    monitor = 'val_loss', save_best_only= True, save_weights_only= True)
             model.fit(xtrain, ytrain, epochs = 150, batch_size = 100, validation_data=(xval, yval),
                       callbacks = [earlystop, reducelr, checkpoint])
@@ -274,7 +274,7 @@ def main():
         selectedrun = np.where(lossesvalfcn == np.min(lossesvalfcn))[0][0] # best fcn with input as stacked leads
         fcn = FCNModel_stack(n = nb_classes, startlr = 2.5*(1e-5))
         model = fcn.model
-        model.load_weights(f'../data/models/stack/best_fcn_original_run{selectedrun}.weights.h5')
+        model.load_weights(f'../data/models/stack/best_fcn_original_run_{selectedrun}.weights.h5')
         for ii in range(len(model.layers)-5):
             layer = model.get_layer(index = ii)
             layer.trainable = False
