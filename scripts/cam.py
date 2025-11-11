@@ -19,7 +19,7 @@ def main():
     directory_lv = '../data/sim_info_lv_3.csv'
     directory_rv = '../data/sim_info_rv_3.csv'
     nb_classes = 24
-    signals, x, y = load_data(leads, data_folder_, directory_lv, directory_rv)
+    _, x, _ = load_data(leads, data_folder_, directory_lv, directory_rv)
     # format to matrix (batch, time, channel)
     x = np.expand_dims(x, axis = -1) 
     indicestrain = pd.read_csv('../data/train_indices.csv')['index']
