@@ -1,7 +1,3 @@
-# this script tunes hyperparameters and then finetunes the best nn architecture on the best embeddings
-# best embeddings: dwt
-# best architecture: fcn
-
 import argparse
 import os
 import tensorflow as tf
