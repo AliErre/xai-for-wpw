@@ -4,6 +4,7 @@ from keras import layers, models, callbacks, optimizers
 from keras_tuner import HyperModel
 
 # networks with hyperparameters fixed from tuning
+# hypermodels for bayesian optimization tuner
 class FCNModel_multichannel(): # 12 input 1d channels
     def __init__(self, n, startlr, kernel='he_normal', shape=(200, 12)):
         self.n = n
@@ -188,6 +189,100 @@ class FCN_image_HyperModel(HyperModel):
         x = layers.ReLU()(x)
 
         x = layers.GlobalAveragePooling2D()(x)
+        output = layers.Dense(self.n, activation='softmax', kernel_initializer=self.kernel)(x)
+        model = models.Model(input_layer, output)
+        model.compile(optimizer = optimizers.Adam(learning_rate = 1e-4),
+            loss = "categorical_crossentropy",
+            metrics = ["categorical_accuracy"])
+        return model
+    
+class FCN_stack_HyperModel(HyperModel):
+    def __init__(self, n, kernel='he_normal', shape=(200*12, 1)):
+        self.n = n
+        self.kernel = kernel
+        self.shape = shape
+        self.nunits = self.shape[1]
+
+    def build(self, hp):
+        input_layer = layers.Input(shape=self.shape)
+
+        x = layers.Conv1D(
+            filters=hp.Int('conv1_filters', min_value=64, max_value=128, step=32),
+            kernel_size=hp.Choice('conv1_kernel_size', values=[10, 20, 50, 100]),
+            padding="same",
+            #kernel_regularizer=keras.regularizers.L2(0.01),
+            strides = hp.Choice('conv1_kernel_stride', values = [2, 5, 10]),
+            kernel_initializer=self.kernel
+        )(input_layer)
+        x = layers.BatchNormalization()(x)
+        x = layers.ReLU()(x)
+
+        x = layers.Conv1D(
+            filters=hp.Int('conv2_filters', min_value=128, max_value=256, step=64),
+            kernel_size=hp.Choice('conv2_kernel_size', values=[3, 5, 7, 9, 10, 20]),
+            padding="same",
+            strides = hp.Choice('conv2_kernel_stride', values = [1, 2, 5]),
+            kernel_initializer=self.kernel
+        )(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.ReLU()(x)
+
+        x = layers.Conv1D(
+            filters=hp.Int('conv3_filters', min_value=64, max_value=128, step=32),
+            kernel_size=hp.Choice('conv3_kernel_size', values=[3, 5, 7, 9, 10, 20]),
+            padding="same",
+            strides = hp.Choice('conv3_kernel_stride', values = [1, 2, 5]),
+            kernel_initializer=self.kernel
+        )(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.ReLU()(x)
+
+        x = layers.GlobalAveragePooling1D()(x)
+        output = layers.Dense(self.n, activation='softmax', kernel_initializer=self.kernel)(x)
+        model = models.Model(input_layer, output)
+        model.compile(optimizer = optimizers.Adam(learning_rate = 1e-4),
+            loss = "categorical_crossentropy",
+            metrics = ["categorical_accuracy"])
+        return model
+    
+class FCN_multichannel_HyperModel(HyperModel):
+    def __init__(self, n, kernel='he_normal', shape=(200, 12)):
+        self.n = n
+        self.kernel = kernel
+        self.shape = shape
+        self.nunits = self.shape[1]
+
+    def build(self, hp):
+        input_layer = layers.Input(shape=self.shape)
+
+        x = layers.Conv1D(
+            filters=hp.Int('conv1_filters', min_value=64, max_value=128, step=32),
+            kernel_size=hp.Choice('conv1_kernel_size', values=[3, 5, 7, 8, 9]),
+            padding="same",
+            kernel_initializer=self.kernel
+        )(input_layer)
+        x = layers.BatchNormalization()(x)
+        x = layers.ReLU()(x)
+
+        x = layers.Conv1D(
+            filters=hp.Int('conv2_filters', min_value=128, max_value=256, step=64),
+            kernel_size=hp.Choice('conv2_kernel_size', values=[3, 5, 7, 9]),
+            padding="same",
+            kernel_initializer=self.kernel
+        )(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.ReLU()(x)
+
+        x = layers.Conv1D(
+            filters=hp.Int('conv3_filters', min_value=64, max_value=128, step=32),
+            kernel_size=hp.Choice('conv3_kernel_size', values=[3, 5, 7, 9]),
+            padding="same",
+            kernel_initializer=self.kernel
+        )(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.ReLU()(x)
+
+        x = layers.GlobalAveragePooling1D()(x)
         output = layers.Dense(self.n, activation='softmax', kernel_initializer=self.kernel)(x)
         model = models.Model(input_layer, output)
         model.compile(optimizer = optimizers.Adam(learning_rate = 1e-4),
