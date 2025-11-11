@@ -37,7 +37,6 @@ def main():
     signals, _, y = load_data(leads, data_folder_, directory_lv, directory_rv)
     indicestrain = pd.read_csv('../data/train_indices.csv')['index']
     indicesval = pd.read_csv('../data/val_indices.csv')['index']
-    indicestest = pd.read_csv('../data/test_indices.csv')['index']
     x = np.zeros((len(signals), signals[0].shape[0]*signals[0].shape[1], 1))
     for ii, signal in enumerate(signals):
         for jj, column in enumerate(leads):
