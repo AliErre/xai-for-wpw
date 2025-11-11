@@ -1,5 +1,4 @@
 import os
-import argparse
 import tensorflow as tf
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -9,14 +8,9 @@ from keras import layers, models, optimizers, activations
 import numpy as np
 import pandas as pd
 import json
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import OneHotEncoder
 import pickle
 from nns import FCNModel_image
 from functions import read_data
-
-keras.utils.set_random_seed(42)
 
 # computes class activation maps for FCN with 2d channels (ecgs as images)     
 def main():
