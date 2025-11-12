@@ -27,7 +27,7 @@ To tune the 2D FCN model and also output the selected hyperparameters, from the 
 ```bash
 python3 tune_image.py --run True
 ```
-running
+Running
 ```bash
 python3 tune_image.py --run False
 ```
