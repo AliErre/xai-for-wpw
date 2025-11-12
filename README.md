@@ -1,12 +1,12 @@
 # XAI for WPW
 
-This repository contains code for the **Explainable Deep Learning-based Classification of Wolff-Parkinson-White Electrocardiographic Signals** paper. The project focuses on classifying **12-lead ECG signals** (https://arxiv.org/pdf/2511.05973), each consisting of **200 time steps**, while employing **explainable AI (XAI)** to uncover the link between model-driving features and physiological events. All deep learning models are implemented in **TensorFlow**.
+This repository contains code for the **Explainable Deep Learning-based Classification of Wolff-Parkinson-White Electrocardiographic Signals** paper (https://arxiv.org/pdf/2511.05973). The focus is on classifying **12-lead ECG signals**, each consisting of **200 time steps**, while employing **explainable AI (XAI)** to uncover the link between the features driving the decision-making process of the deep learning (DL) models and physiological events in the electrical activation of the heart. All models were implemented using the **TensorFlow** deep learning framework.
 
 ---
 
 ## Overview
  
-- **Goal:** Detect WPW patterns and generate interpretable model explanations  
+- **Goal:** Detect WPW patterns and gain insights into the ECG features that are influential to the decision-making process of the DL model.  
 - **Framework:** TensorFlow / Keras  
 - **Explainability:** Grad-CAM (cam.py), Guided Grad-CAM (cam.py), Guided Backpropagation (guidedbackprop.py) 
 - **Output:** Model weights (run.py, tune_stack.py, tune_multichannel.py, tune_image.py), predictions (run.py), saliency maps (cam.py, guidedback.py)  
